@@ -13,21 +13,12 @@ import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
 /**
- * VRRenderer — Ice Cave journey renderer.
- *
- * Features:
- *  1. Particle system (snow / dust / sparkles)
- *  2. Gaze flashlight (spotlight follows gaze direction)
- *  3. Spatial audio hook (scene change callback)
- *  4. Gaze-triggered info buttons (3D spheres)
- *  5. Animated scene transitions (camera zoom burst)
- *  6. Dynamic lighting shifts (color temperature per scene)
- *  7. Breath fog effect (bottom-of-screen wisps)
- *  8. Landing Menu: 360° cave card interactive carousel
+ * VRRenderer — Indian Cave journey renderer.
  */
 public class VRRenderer implements GLSurfaceView.Renderer {
 
     public enum State {
+        WELCOME,
         LANDING,
         INSIDE
     }
@@ -38,9 +29,9 @@ public class VRRenderer implements GLSurfaceView.Renderer {
     private final InteractionManager interactionManager;
 
     // ── Scene state ────────────────────────────────────────────────────────
-    private State currentState = State.LANDING;
+    private State currentState = State.WELCOME;
     private int   currentCaveIndex = -1;
-    private int   caveCount = 4; // Default
+    private int   caveCount = 6; 
 
     // ── GL objects ─────────────────────────────────────────────────────────
     private Sphere         caveSphere;
@@ -100,18 +91,17 @@ public class VRRenderer implements GLSurfaceView.Renderer {
     private int width, height;
 
     // ── Dynamic lighting per scene ─────────────────────────────────────────
-    // Each scene has [R, G, B] tint that shifts from warm → deep blue
     private static final float[][] SCENE_TINTS = {
-        { 1.00f, 0.85f, 0.65f },  // Ajanta: Warm ancient stone, mural lighting
-        { 0.85f, 0.85f, 0.80f },  // Ellora: Majestic grey rock, majestic atmosphere
-        { 1.00f, 0.65f, 0.45f },  // Badami: Vibrant red sandstone
-        { 0.75f, 0.75f, 0.85f },  // Elephanta: Cool, dim atmospheric cave light
+        { 1.00f, 0.85f, 0.65f },
+        { 0.85f, 0.85f, 0.80f },
+        { 1.00f, 0.65f, 0.45f },
+        { 0.75f, 0.75f, 0.85f },
+        { 0.80f, 0.95f, 0.85f },
+        { 0.90f, 0.80f, 1.00f }
     };
-    // Current interpolated tint (smoothly transitions between scenes)
     private float tintR = 1.00f, tintG = 0.95f, tintB = 0.85f;
 
     // ── Shaders ────────────────────────────────────────────────────────────
-    // Shared vertex shader for all geometry
     private static final String VERT_SRC =
         "uniform mat4 uMVPMatrix;" +
         "attribute vec4 vPosition;" +
@@ -124,7 +114,6 @@ public class VRRenderer implements GLSurfaceView.Renderer {
         "  vWorldPos = vPosition.xyz;" +
         "}";
 
-    // Cave interior shader: spotlight + tint + vignette (used only when INSIDE)
     private static final String FRAG_SRC =
         "precision mediump float;" +
         "uniform sampler2D uTexture;" +
@@ -151,7 +140,6 @@ public class VRRenderer implements GLSurfaceView.Renderer {
         "  gl_FragColor = vec4(finalColor, texColor.a * uAlphaMultiplier);" +
         "}";
 
-    // Landing card shader: bright, flat colour with glow highlight — NO dark effects
     private static final String CARD_VERT =
         "uniform mat4 uMVPMatrix;" +
         "attribute vec4 vPosition;" +
@@ -162,34 +150,28 @@ public class VRRenderer implements GLSurfaceView.Renderer {
         "  vTexCoord = aTexCoordinate;" +
         "}";
 
-    // Card face: white base + coloured border + highlight on hover
     private static final String CARD_FRAG =
         "precision mediump float;" +
-        "uniform vec4 uCardColor;" +    // base card colour
-        "uniform float uGlow;" +        // 0 = normal, 1 = highlighted
+        "uniform vec4 uCardColor;" +
+        "uniform float uGlow;" +
         "uniform float uTime;" +
         "varying vec2 vTexCoord;" +
         "void main() {" +
-        // Rounded-rect border: darken edges
         "  vec2 uv = vTexCoord;" +
         "  float bx = smoothstep(0.0, 0.04, uv.x) * smoothstep(1.0, 0.96, uv.x);" +
         "  float by = smoothstep(0.0, 0.06, uv.y) * smoothstep(1.0, 0.94, uv.y);" +
         "  float border = bx * by;" +
-        // Interior: a soft gradient from top to bottom
         "  vec3 topCol = uCardColor.rgb * 1.15;" +
         "  vec3 botCol = uCardColor.rgb * 0.75;" +
         "  vec3 col = mix(topCol, botCol, uv.y);" +
-        // Glow pulse ring when highlighted
         "  float pulse = 0.7 + 0.3 * sin(uTime * 4.0);" +
         "  col = mix(col, vec3(1.0, 0.85, 0.3) * pulse, uGlow * (1.0 - border) * 0.0);" +
         "  col = mix(vec3(1.0, 0.85, 0.3) * pulse, col, border);" +
-        // Highlight brighten whole card
         "  col += uGlow * 0.22 * vec3(1.0, 0.9, 0.5);" +
         "  float alpha = 0.93;" +
         "  gl_FragColor = vec4(col, alpha);" +
         "}";
 
-    // Grid shader for ground stability
     private static final String GRID_VERT =
         "uniform mat4 uMVPMatrix;" +
         "attribute vec4 vPosition;" +
@@ -199,20 +181,20 @@ public class VRRenderer implements GLSurfaceView.Renderer {
     private static final String GRID_FRAG =
         "precision mediump float;" +
         "void main() {" +
-        "  gl_FragColor = vec4(0.5, 0.5, 0.5, 0.2);" + // Subtle grey grid
+        "  gl_FragColor = vec4(0.5, 0.5, 0.5, 0.2);" +
         "}";
     private int gridProgram;
 
     private int cardShaderProgram;
     private static final float[][] CARD_COLORS = {
-        {0.95f, 0.82f, 0.55f},  // warm golden
-        {0.55f, 0.82f, 0.95f},  // sky blue
-        {0.75f, 0.95f, 0.65f},  // soft green
-        {0.95f, 0.65f, 0.65f},  // rose
-        {0.80f, 0.65f, 0.95f},  // lavender
-        {0.65f, 0.95f, 0.90f},  // teal
-        {0.95f, 0.90f, 0.55f},  // citrus
-        {0.65f, 0.75f, 0.95f},  // periwinkle
+        {0.95f, 0.82f, 0.55f},
+        {0.55f, 0.82f, 0.95f},
+        {0.75f, 0.95f, 0.65f},
+        {0.95f, 0.65f, 0.65f},
+        {0.80f, 0.65f, 0.95f},
+        {0.65f, 0.95f, 0.90f},
+        {0.95f, 0.90f, 0.55f},
+        {0.65f, 0.75f, 0.95f},
     };
 
     private static final String INFO_VERT =
@@ -232,7 +214,6 @@ public class VRRenderer implements GLSurfaceView.Renderer {
         "  gl_FragColor = vec4(color, 0.85 * uAlphaMultiplier);" +
         "}";
 
-    // Simple texture shader for labels (no lighting/spotlight)
     private static final String TEXTURE_VERT =
         "uniform mat4 uMVPMatrix;" +
         "attribute vec4 vPosition;" +
@@ -276,6 +257,9 @@ public class VRRenderer implements GLSurfaceView.Renderer {
 
     // ── Public API ─────────────────────────────────────────────────────────
 
+    private int welcomeSplashTexture;
+    private int startButtonTexture;
+    
     public void setState(State state) {
         this.currentState = state;
         if (state == State.LANDING) {
@@ -300,7 +284,6 @@ public class VRRenderer implements GLSurfaceView.Renderer {
         }
     }
 
-    /** Trigger a visual velocity burst. */
     public void moveForward() {
         visualYaw = (float) Math.toRadians(sensorHandler.getYaw());
         visualVelocity += 1.5f;
@@ -330,17 +313,15 @@ public class VRRenderer implements GLSurfaceView.Renderer {
         }
     }
 
-    // ── GLSurfaceView.Renderer ─────────────────────────────────────────────
     @Override
     public void onSurfaceCreated(GL10 unused, EGLConfig config) {
-        GLES20.glClearColor(0.88f, 0.94f, 1.0f, 1.0f); // Bright sky-blue
+        GLES20.glClearColor(0.88f, 0.94f, 1.0f, 1.0f);
         GLES20.glDisable(GLES20.GL_CULL_FACE);
         GLES20.glEnable(GLES20.GL_DEPTH_TEST);
 
         startTimeMs = System.currentTimeMillis();
         lastFrameMs = startTimeMs;
 
-        // Scene textures - Load common placeholders
         int placeholder = TextureHelper.loadTexture(context, R.drawable.cave_entering);
         for (int i = 0; i < caveCount; i++) {
             caveInteriorTextures[i] = placeholder;
@@ -355,15 +336,16 @@ public class VRRenderer implements GLSurfaceView.Renderer {
             labelCards[i] = new com.example.vrdesert.shapes.ImageBillboard();
         }
 
-        // Cave sphere (only used in INSIDE state)
         caveSphere = new Sphere(50f, 48, 96);
         tunnelShaderProgram = buildProgram(VERT_SRC, FRAG_SRC);
-        // Card shader (used in LANDING state for bright coloured cards)
         cardShaderProgram = buildProgram(CARD_VERT, CARD_FRAG);
         gridProgram = buildProgram(GRID_VERT, GRID_FRAG);
         textureProgram = buildProgram(TEXTURE_VERT, TEXTURE_FRAG);
+        
+        // Pre-load textures
+        welcomeSplashTexture = TextureHelper.loadTexture(context, R.drawable.updatedlanding);
+        startButtonTexture = com.example.vrdesert.shapes.TextTextureHelper.createTextTexture("START EXPLORING");
 
-        // Info buttons
         infoButtonSphere = new Sphere(0.4f, 16, 16);
         infoButtonProgram = buildProgram(INFO_VERT, INFO_FRAG);
         infoButtons = new GameObject[] {
@@ -373,16 +355,13 @@ public class VRRenderer implements GLSurfaceView.Renderer {
         };
         positionInfoButtons();
 
-        // Particle system
         particleSystem = new ParticleSystem();
         particleSystem.initGL();
 
-        // Breath fog
         breathFog = new BreathFog();
         breathFog.initGL();
 
         progressCircle = new com.example.vrdesert.shapes.ProgressCircle();
-
         crosshair = new Crosshair();
     }
 
@@ -400,19 +379,16 @@ public class VRRenderer implements GLSurfaceView.Renderer {
 
     @Override
     public void onDrawFrame(GL10 unused) {
-        // ── Timing ────────────────────────────────────────────────────────
         long now = System.currentTimeMillis();
         float dt = (now - lastFrameMs) / 1000f;
-        dt = Math.min(dt, 0.1f); // cap to avoid huge jumps
+        dt = Math.min(dt, 0.1f);
         lastFrameMs = now;
         elapsedSec = (now - startTimeMs) / 1000f;
 
-        // ── Visual velocity ───────────────────────────────────────────────
         totalVisualDistance += visualVelocity * 0.05f;
         visualVelocity      *= 0.92f;
         if (visualVelocity < 0.01f) visualVelocity = 0f;
 
-        // ── Transition animation ──────────────────────────────────────────
         if (transitionProgress > 0f) {
             transitionProgress -= dt * 1.5f;
             if (transitionProgress < 0f) transitionProgress = 0f;
@@ -422,24 +398,20 @@ public class VRRenderer implements GLSurfaceView.Renderer {
             if (transitionFOVBurst < 0f) transitionFOVBurst = 0f;
         }
 
-        // ── Dynamic lighting: smooth tint interpolation ───────────────────
-        float[] target = (currentCaveIndex != -1) ? SCENE_TINTS[currentCaveIndex] : SCENE_TINTS[0];
+        float[] target = (currentCaveIndex != -1) ? SCENE_TINTS[currentCaveIndex % SCENE_TINTS.length] : SCENE_TINTS[0];
         tintR += (target[0] - tintR) * dt * 2f;
         tintG += (target[1] - tintG) * dt * 2f;
         tintB += (target[2] - tintB) * dt * 2f;
 
-        // ── Card Scaling Animation ────────────────────────────────────────
         for (int i = 0; i < caveCount; i++) {
             float targetScale = (i == highlightedCardIndex) ? 1.2f : 1.0f;
             cardScales[i] += (targetScale - cardScales[i]) * dt * 8f;
         }
 
-        // ── Particle update ───────────────────────────────────────────────
         if (particleSystem != null) {
             particleSystem.update(dt);
         }
 
-        // ── Recalculate projection if FOV is bursting ─────────────────────
         if (transitionFOVBurst > 0.1f) {
             float ratio = (float)(width / 2) / height;
             float fov = 75f + transitionFOVBurst;
@@ -456,23 +428,22 @@ public class VRRenderer implements GLSurfaceView.Renderer {
         float fY = (float)(Math.sin(-pitchRad));
         float fZ = (float)(-Math.cos(yawRad) * Math.cos(pitchRad));
 
-        // Store gaze direction for flashlight shader
         gazeForwardX = fX;
         gazeForwardY = fY;
         gazeForwardZ = fZ;
 
         float tX = fX, tY = CAM_Y + fY, tZ = fZ;
 
-        // ── Gaze check for cards ──────────────────────────────────────────
-        if (currentState == State.LANDING) {
+        if (currentState == State.WELCOME) {
+            GameObject startBtnObj = new GameObject(0, -1.0f, -7.0f, GameObject.Type.INFO_BUTTON_0);
+            interactionManager.checkGaze(0, CAM_Y, 0, fX, fY, fZ, startBtnObj, -100); 
+        } else if (currentState == State.LANDING) {
             float cardDist = 14f;
             float angleStep = 360f / caveCount;
             for (int i = 0; i < caveCount; i++) {
                 float angle = (float) Math.toRadians(i * angleStep);
                 float cardX = (float) Math.sin(angle) * cardDist;
                 float cardZ = (float) -Math.cos(angle) * cardDist;
-                
-                // Simple gaze check for card (approximated as sphere for InteractionManager)
                 GameObject cardObj = new GameObject(cardX, 1.0f, cardZ, GameObject.Type.INFO_BUTTON_0);
                 interactionManager.checkGaze(0, CAM_Y, 0, fX, fY, fZ, cardObj, i);
             }
@@ -481,20 +452,17 @@ public class VRRenderer implements GLSurfaceView.Renderer {
             crosshair.setTargeting(interactionManager.isTargeting());
         }
 
-        // ── Left eye ─────────────────────────────────────────────────────
+        // Left eye
         GLES20.glViewport(0, 0, width / 2, height);
-        // Correct IPD offset: offset the camera perpendicular to the look direction
         float cosYaw = (float) Math.cos(yawRad);
         float sinYaw = (float) Math.sin(yawRad);
         float lox = cosYaw * EYE_OFFSET;
         float loz = -sinYaw * EYE_OFFSET;
-        
-        Matrix.setLookAtM(viewMatrix, 0,
-            -lox, CAM_Y, -loz,
-            tX - lox, tY, tZ - loz,
-            0f, 1f, 0f);
+        Matrix.setLookAtM(viewMatrix, 0, -lox, CAM_Y, -loz, tX - lox, tY, tZ - loz, 0f, 1f, 0f);
         Matrix.multiplyMM(vPMatrix, 0, leftProjectionMatrix, 0, viewMatrix, 0);
-        if (currentState == State.LANDING) {
+        if (currentState == State.WELCOME) {
+            drawWelcomeScreen(vPMatrix);
+        } else if (currentState == State.LANDING) {
             drawLandingMenu(vPMatrix);
         } else {
             drawScene(vPMatrix);
@@ -503,17 +471,15 @@ public class VRRenderer implements GLSurfaceView.Renderer {
         }
         drawUI();
 
-        // ── Right eye ────────────────────────────────────────────────────
+        // Right eye
         GLES20.glViewport(width / 2, 0, width / 2, height);
         float rox = -cosYaw * EYE_OFFSET;
         float roz = sinYaw * EYE_OFFSET;
-        
-        Matrix.setLookAtM(viewMatrix, 0,
-            -rox, CAM_Y, -roz,
-            tX - rox, tY, tZ - roz,
-            0f, 1f, 0f);
+        Matrix.setLookAtM(viewMatrix, 0, -rox, CAM_Y, -roz, tX - rox, tY, tZ - roz, 0f, 1f, 0f);
         Matrix.multiplyMM(vPMatrix, 0, rightProjectionMatrix, 0, viewMatrix, 0);
-        if (currentState == State.LANDING) {
+        if (currentState == State.WELCOME) {
+            drawWelcomeScreen(vPMatrix);
+        } else if (currentState == State.LANDING) {
             drawLandingMenu(vPMatrix);
         } else {
             drawScene(vPMatrix);
@@ -523,25 +489,19 @@ public class VRRenderer implements GLSurfaceView.Renderer {
         drawUI();
     }
 
-    // ── Draw helpers ───────────────────────────────────────────────────────
-
     private void drawLandingMenu(float[] vpMatrix) {
-        // Clear background is handled by glClearColor (Bright Sky)
         GLES20.glEnable(GLES20.GL_BLEND);
         GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA);
         GLES20.glEnable(GLES20.GL_DEPTH_TEST);
 
-        // 1. Draw a ground grid for stability/orientation
         GLES20.glUseProgram(gridProgram);
         for (int i = -10; i <= 10; i++) {
-            // Horizontal lines
             Matrix.setIdentityM(modelMatrix, 0);
             Matrix.translateM(modelMatrix, 0, 0, -0.5f, i * 2.0f);
             Matrix.scaleM(modelMatrix, 0, 20f, 0.01f, 1f);
             Matrix.multiplyMM(scratchMatrix, 0, vpMatrix, 0, modelMatrix, 0);
             caveCards[0].draw(gridProgram, scratchMatrix, 0, 0.5f, 0f);
 
-            // Vertical lines
             Matrix.setIdentityM(modelMatrix, 0);
             Matrix.translateM(modelMatrix, 0, i * 2.0f, -0.5f, 0);
             Matrix.scaleM(modelMatrix, 0, 1f, 0.01f, 20f);
@@ -553,8 +513,7 @@ public class VRRenderer implements GLSurfaceView.Renderer {
         int timeHandle = GLES20.glGetUniformLocation(cardShaderProgram, "uTime");
         if (timeHandle != -1) GLES20.glUniform1f(timeHandle, elapsedSec);
 
-        // 2. Arrange cards in a larger circle to fit 26+ items
-        float cardDist = 14f; // Pushed further back
+        float cardDist = 14f;
         float angleStep = 360f / caveCount;
         for (int i = 0; i < caveCount; i++) {
             float angleDegrees = i * angleStep;
@@ -571,66 +530,45 @@ public class VRRenderer implements GLSurfaceView.Renderer {
             float cardW = 1.8f * cardScales[i];
             float cardH = 2.8f * cardScales[i];
 
-            // ── Draw Main Card ──
             Matrix.setIdentityM(modelMatrix, 0);
-            Matrix.translateM(modelMatrix, 0,
-                (float)Math.sin(angleRad) * cardDist,
-                1.2f, 
-                (float)-Math.cos(angleRad) * cardDist);
+            Matrix.translateM(modelMatrix, 0, (float)Math.sin(angleRad) * cardDist, 1.2f, (float)-Math.cos(angleRad) * cardDist);
             Matrix.rotateM(modelMatrix, 0, -angleDegrees, 0, 1, 0);
             Matrix.scaleM(modelMatrix, 0, cardW, cardH, 1.0f);
             Matrix.multiplyMM(scratchMatrix, 0, vpMatrix, 0, modelMatrix, 0);
             caveCards[i].draw(cardShaderProgram, scratchMatrix, 0, 1.0f, highlighted ? 1.0f : 0.0f);
 
-            // ── Draw Label Card ──
             Matrix.setIdentityM(modelMatrix, 0);
-            Matrix.translateM(modelMatrix, 0,
-                (float)Math.sin(angleRad) * cardDist,
-                2.8f, // Positioned ABOVE the main card
-                (float)-Math.cos(angleRad) * cardDist);
+            Matrix.translateM(modelMatrix, 0, (float)Math.sin(angleRad) * (cardDist - 0.05f), 2.8f, (float)-Math.cos(angleRad) * (cardDist - 0.05f));
             Matrix.rotateM(modelMatrix, 0, -angleDegrees, 0, 1, 0);
-            Matrix.scaleM(modelMatrix, 0, 2.0f, 0.5f, 1.0f); // Slightly wider to fit text
+            Matrix.scaleM(modelMatrix, 0, 2.0f, 0.5f, 1.0f); 
             Matrix.multiplyMM(scratchMatrix, 0, vpMatrix, 0, modelMatrix, 0);
-            
-            // Use simple texture shader for labels
             labelCards[i].draw(textureProgram, scratchMatrix, caveLabelTextures[i], 1.0f, 0f);
         }
-
         GLES20.glDisable(GLES20.GL_BLEND);
     }
 
     private void drawScene(float[] vpMatrix) {
         GLES20.glDisable(GLES20.GL_DEPTH_TEST);
-
-        // Sphere centred on camera
         Matrix.setIdentityM(modelMatrix, 0);
         float scale = 1.0f + (float)(Math.sin(totalVisualDistance * 0.4f) * 0.015f);
-        // Transition zoom effect
         if (transitionProgress > 0f) {
-            float zoom = 1.0f + transitionProgress * 0.08f;
-            scale *= zoom;
+            scale *= (1.0f + transitionProgress * 0.08f);
         }
         Matrix.scaleM(modelMatrix, 0, scale, scale, scale);
         Matrix.multiplyMM(scratchMatrix, 0, vpMatrix, 0, modelMatrix, 0);
 
         float uOffset = totalVisualDistance * 0.008f;
-
-        // Set dynamic uniforms
         GLES20.glUseProgram(tunnelShaderProgram);
         int tintHandle = GLES20.glGetUniformLocation(tunnelShaderProgram, "uTint");
         if (tintHandle != -1) GLES20.glUniform3f(tintHandle, tintR, tintG, tintB);
-
         int gazeHandle = GLES20.glGetUniformLocation(tunnelShaderProgram, "uGazeDir");
         if (gazeHandle != -1) GLES20.glUniform3f(gazeHandle, gazeForwardX, gazeForwardY, gazeForwardZ);
 
         int activeTexture = (currentCaveIndex != -1) ? caveInteriorTextures[currentCaveIndex] : caveInteriorTextures[0];
-        caveSphere.draw(tunnelShaderProgram, scratchMatrix,
-            activeTexture, 1.0f, uOffset, 0f);
+        caveSphere.draw(tunnelShaderProgram, scratchMatrix, activeTexture, 1.0f, uOffset, 0f);
 
-        // Draw info buttons
         GLES20.glEnable(GLES20.GL_BLEND);
         GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA);
-
         GLES20.glUseProgram(infoButtonProgram);
         int timeHandle = GLES20.glGetUniformLocation(infoButtonProgram, "uTime");
         if (timeHandle != -1) GLES20.glUniform1f(timeHandle, elapsedSec);
@@ -639,7 +577,6 @@ public class VRRenderer implements GLSurfaceView.Renderer {
             if (obj.isCollected) continue;
             Matrix.setIdentityM(modelMatrix, 0);
             Matrix.translateM(modelMatrix, 0, obj.x, obj.y, obj.z);
-            // Floating bobbing animation
             float bob = (float) Math.sin(elapsedSec * 1.5f + obj.x) * 0.15f;
             Matrix.translateM(modelMatrix, 0, 0, bob, 0);
             float btnScale = 1.0f + 0.15f * (float) Math.sin(elapsedSec * 3.0f + obj.z);
@@ -648,7 +585,6 @@ public class VRRenderer implements GLSurfaceView.Renderer {
             infoButtonSphere.draw(infoButtonProgram, scratchMatrix, caveInteriorTextures[0], 1.0f, 0f, 0f);
         }
         GLES20.glDisable(GLES20.GL_BLEND);
-
         GLES20.glEnable(GLES20.GL_DEPTH_TEST);
     }
 
@@ -661,7 +597,6 @@ public class VRRenderer implements GLSurfaceView.Renderer {
 
     private void drawBreathFog() {
         if (breathFog == null) return;
-        // Intensity increases as you go deeper (scene 0=0.5, scene 3=1.0)
         float intensity = 0.5f + (currentCaveIndex != -1 ? currentCaveIndex : 0) * 0.17f;
         breathFog.draw(elapsedSec, intensity);
     }
@@ -676,35 +611,45 @@ public class VRRenderer implements GLSurfaceView.Renderer {
         float centerY = height / 2f;
         float centerX = eyeW / 2f;
         
-        // 1. Draw Crosshair
         Matrix.setIdentityM(uiModelMatrix, 0);
         Matrix.translateM(uiModelMatrix, 0, centerX, centerY, 0f);
-        // Scale crosshair to be a reasonable size (e.g., 5% of eye width)
-        float crosshairScale = (eyeW * 0.05f) / 15f; 
+        float crosshairScale = (eyeW * 0.012f) / 15f; 
         Matrix.scaleM(uiModelMatrix, 0, crosshairScale, crosshairScale, 1.0f);
         Matrix.multiplyMM(uiMVPMatrix, 0, uiProjectionMatrix, 0, uiModelMatrix, 0);
-        
-        crosshair.setTargeting(interactionManager.isTargeting());
         crosshair.draw(uiMVPMatrix);
 
-        // 2. Draw Progress Circle
         float progress = interactionManager.getGazeProgress();
         if (progress > 0) {
             Matrix.setIdentityM(uiModelMatrix, 0);
             Matrix.translateM(uiModelMatrix, 0, centerX, centerY, 0f);
-            // Circle slightly larger than crosshair
-            float circleScale = (eyeW * 0.08f); 
+            float circleScale = (eyeW * 0.025f); 
             Matrix.scaleM(uiModelMatrix, 0, circleScale, circleScale, 1f);
             Matrix.multiplyMM(uiMVPMatrix, 0, uiProjectionMatrix, 0, uiModelMatrix, 0);
-            
             progressCircle.draw(infoButtonProgram, uiMVPMatrix, progress);
         }
-        
         GLES20.glEnable(GLES20.GL_DEPTH_TEST);
         GLES20.glDisable(GLES20.GL_BLEND);
     }
 
-    // ── Shader utilities ───────────────────────────────────────────────────
+    private void drawWelcomeScreen(float[] vpMatrix) {
+        GLES20.glEnable(GLES20.GL_BLEND);
+        GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA);
+
+        // 1. Background Splash Image (Full screen focus)
+        Matrix.setIdentityM(modelMatrix, 0);
+        Matrix.translateM(modelMatrix, 0, 0, 1.0f, -10.0f);
+        Matrix.scaleM(modelMatrix, 0, 14f, 8f, 1.0f);
+        Matrix.multiplyMM(scratchMatrix, 0, vpMatrix, 0, modelMatrix, 0);
+        caveCards[0].draw(textureProgram, scratchMatrix, welcomeSplashTexture, 1.0f, 0f);
+
+        // 2. "START EXPLORING" Button (SMALL ONE)
+        Matrix.setIdentityM(modelMatrix, 0);
+        Matrix.translateM(modelMatrix, 0, 0, -1.0f, -7.0f); 
+        float btnTargetScale = (interactionManager.isTargeting() && interactionManager.getGazeProgress() > 0) ? 1.15f : 1.0f;
+        Matrix.scaleM(modelMatrix, 0, 1.5f * btnTargetScale, 0.4f * btnTargetScale, 1.0f);
+        Matrix.multiplyMM(scratchMatrix, 0, vpMatrix, 0, modelMatrix, 0);
+        labelCards[1].draw(textureProgram, scratchMatrix, startButtonTexture, 1.0f, 0f);
+    }
 
     private int buildProgram(String vertSrc, String fragSrc) {
         int vert = loadShader(GLES20.GL_VERTEX_SHADER,   vertSrc);
@@ -713,11 +658,6 @@ public class VRRenderer implements GLSurfaceView.Renderer {
         GLES20.glAttachShader(prog, vert);
         GLES20.glAttachShader(prog, frag);
         GLES20.glLinkProgram(prog);
-        int[] linkStatus = new int[1];
-        GLES20.glGetProgramiv(prog, GLES20.GL_LINK_STATUS, linkStatus, 0);
-        if (linkStatus[0] == 0) {
-            android.util.Log.e("VRRenderer", "Program link failed: " + GLES20.glGetProgramInfoLog(prog));
-        }
         return prog;
     }
 
@@ -725,11 +665,6 @@ public class VRRenderer implements GLSurfaceView.Renderer {
         int shader = GLES20.glCreateShader(type);
         GLES20.glShaderSource(shader, src);
         GLES20.glCompileShader(shader);
-        int[] compiled = new int[1];
-        GLES20.glGetShaderiv(shader, GLES20.GL_COMPILE_STATUS, compiled, 0);
-        if (compiled[0] == 0) {
-            android.util.Log.e("VRRenderer", "Shader compile error (" + (type == GLES20.GL_VERTEX_SHADER ? "vert" : "frag") + "): " + GLES20.glGetShaderInfoLog(shader));
-        }
         return shader;
     }
 }

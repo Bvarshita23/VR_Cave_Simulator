@@ -1,9 +1,9 @@
 -- Merging decision tree log ---
 manifest
-ADDED from C:\Amad Proj Final\VR_Cave_Simulator\app\src\main\AndroidManifest.xml:2:1-33:12
-INJECTED from C:\Amad Proj Final\VR_Cave_Simulator\app\src\main\AndroidManifest.xml:2:1-33:12
-INJECTED from C:\Amad Proj Final\VR_Cave_Simulator\app\src\main\AndroidManifest.xml:2:1-33:12
-INJECTED from C:\Amad Proj Final\VR_Cave_Simulator\app\src\main\AndroidManifest.xml:2:1-33:12
+ADDED from C:\Amad Proj Final\VR_Cave_Simulator\app\src\main\AndroidManifest.xml:2:1-38:12
+INJECTED from C:\Amad Proj Final\VR_Cave_Simulator\app\src\main\AndroidManifest.xml:2:1-38:12
+INJECTED from C:\Amad Proj Final\VR_Cave_Simulator\app\src\main\AndroidManifest.xml:2:1-38:12
+INJECTED from C:\Amad Proj Final\VR_Cave_Simulator\app\src\main\AndroidManifest.xml:2:1-38:12
 MERGED from [com.google.android.material:material:1.10.0] C:\Users\manas\.gradle\caches\8.13\transforms\a362ab988e2b342b2463ca888cbbecf9\transformed\material-1.10.0\AndroidManifest.xml:17:1-24:12
 MERGED from [androidx.constraintlayout:constraintlayout:2.1.4] C:\Users\manas\.gradle\caches\8.13\transforms\7eb027e7305127024cd5dad21ffe3a42\transformed\constraintlayout-2.1.4\AndroidManifest.xml:2:1-11:12
 MERGED from [androidx.appcompat:appcompat-resources:1.6.1] C:\Users\manas\.gradle\caches\8.13\transforms\7011d89884e6a3063a6ce55edd9f882f\transformed\jetified-appcompat-resources-1.6.1\AndroidManifest.xml:17:1-22:12
@@ -71,8 +71,8 @@ ADDED from C:\Amad Proj Final\VR_Cave_Simulator\app\src\main\AndroidManifest.xml
 	android:name
 		ADDED from C:\Amad Proj Final\VR_Cave_Simulator\app\src\main\AndroidManifest.xml:8:22-64
 application
-ADDED from C:\Amad Proj Final\VR_Cave_Simulator\app\src\main\AndroidManifest.xml:10:5-31:19
-INJECTED from C:\Amad Proj Final\VR_Cave_Simulator\app\src\main\AndroidManifest.xml:10:5-31:19
+ADDED from C:\Amad Proj Final\VR_Cave_Simulator\app\src\main\AndroidManifest.xml:10:5-36:19
+INJECTED from C:\Amad Proj Final\VR_Cave_Simulator\app\src\main\AndroidManifest.xml:10:5-36:19
 MERGED from [com.google.android.material:material:1.10.0] C:\Users\manas\.gradle\caches\8.13\transforms\a362ab988e2b342b2463ca888cbbecf9\transformed\material-1.10.0\AndroidManifest.xml:22:5-20
 MERGED from [com.google.android.material:material:1.10.0] C:\Users\manas\.gradle\caches\8.13\transforms\a362ab988e2b342b2463ca888cbbecf9\transformed\material-1.10.0\AndroidManifest.xml:22:5-20
 MERGED from [androidx.constraintlayout:constraintlayout:2.1.4] C:\Users\manas\.gradle\caches\8.13\transforms\7eb027e7305127024cd5dad21ffe3a42\transformed\constraintlayout-2.1.4\AndroidManifest.xml:9:5-20
@@ -127,6 +127,14 @@ ADDED from C:\Amad Proj Final\VR_Cave_Simulator\app\src\main\AndroidManifest.xml
 		ADDED from C:\Amad Proj Final\VR_Cave_Simulator\app\src\main\AndroidManifest.xml:29:13-74
 	android:name
 		ADDED from C:\Amad Proj Final\VR_Cave_Simulator\app\src\main\AndroidManifest.xml:27:13-41
+activity#com.example.vrdesert.CalibrationActivity
+ADDED from C:\Amad Proj Final\VR_Cave_Simulator\app\src\main\AndroidManifest.xml:31:9-34:77
+	android:screenOrientation
+		ADDED from C:\Amad Proj Final\VR_Cave_Simulator\app\src\main\AndroidManifest.xml:33:13-50
+	android:configChanges
+		ADDED from C:\Amad Proj Final\VR_Cave_Simulator\app\src\main\AndroidManifest.xml:34:13-74
+	android:name
+		ADDED from C:\Amad Proj Final\VR_Cave_Simulator\app\src\main\AndroidManifest.xml:32:13-48
 uses-sdk
 INJECTED from C:\Amad Proj Final\VR_Cave_Simulator\app\src\main\AndroidManifest.xml reason: use-sdk injection requested
 INJECTED from C:\Amad Proj Final\VR_Cave_Simulator\app\src\main\AndroidManifest.xml

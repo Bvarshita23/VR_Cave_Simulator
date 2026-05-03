@@ -2971,6 +2971,7 @@ drawable ic_mtrl_chip_checked_black
 drawable ic_mtrl_chip_checked_circle
 drawable ic_mtrl_chip_close_circle
 drawable ic_search_black_24
+drawable landingpage
 drawable m3_appbar_background
 drawable m3_avd_hide_password
 drawable m3_avd_show_password
@@ -3046,6 +3047,7 @@ drawable notify_panel_notification_icon_bg
 drawable test_level_drawable
 drawable tooltip_frame_dark
 drawable tooltip_frame_light
+drawable updatedlanding
 id ALT
 id BOTTOM_END
 id BOTTOM_START
@@ -3145,6 +3147,7 @@ id bounceBoth
 id bounceEnd
 id bounceStart
 id btnCalibration
+id btnCloseInfo
 id btnEnterCave
 id btnMove
 id btnStartGame

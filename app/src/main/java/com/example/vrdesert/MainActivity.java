@@ -19,6 +19,7 @@ public class MainActivity extends AppCompatActivity
         implements InteractionManager.InteractionListener {
 
     public enum VRState {
+        WELCOME,
         LANDING,
         TRANSITIONING,
         INSIDE_CAVE
@@ -40,7 +41,7 @@ public class MainActivity extends AppCompatActivity
     private TextView infoCardBody;
 
     // ── State management ──────────────────────────────────────────────────
-    private VRState currentState = VRState.LANDING;
+    private VRState currentState = VRState.WELCOME;
     private int selectedCaveIndex = -1;
     private boolean transitioning = false;
     private TextToSpeech tts;
@@ -68,8 +69,6 @@ public class MainActivity extends AppCompatActivity
             "Odisha",
             "Bihar"
     };
-    // Note: You can add all 28 states here. The menu will automatically arrange
-    // them in a circle.
 
     private static final String[] NARRATION_TEXTS = {
             "The Ajanta Caves in Maharashtra are a series of 29 Buddhist cave monuments dating from the 2nd century BCE. They represent some of the finest examples of ancient Indian art and architecture.",
@@ -80,7 +79,6 @@ public class MainActivity extends AppCompatActivity
 
     // Insight data: [scene 0‑3][button 0‑2][title, body]
     private static final String[][][] INSIGHTS = {
-            // ── Scene 0 — The Frozen Gateway (dark ice tunnel, silhouettes walking in) ──
             {
                     { "❄ How Tunnels Form",
                             "This perfectly oval passage was carved not by hand but by meltwater boring through glacial ice over decades. Liquid water always finds the smallest weakness in solid ice — drilling downward and outward until a passage like this forms." },
@@ -89,8 +87,6 @@ public class MainActivity extends AppCompatActivity
                     { "🧊 Temperature Drop",
                             "As you step inside, the temperature drops 10–15°C within a few metres. The ice surrounding you acts as an insulator far more effective than concrete — maintaining a near-constant subzero environment regardless of what the weather is doing outside." }
             },
-            // ── Scene 1 — The Icicle Curtains (frozen waterfall columns, dark rock behind)
-            // ──
             {
                     { "🏔 Frozen Waterfalls",
                             "What you see here are called ice curtains or frozen waterfalls. When water seeps through cracks in the rock above and meets subzero cave air, it freezes mid-flow. Each column grew one freeze-cycle at a time — some of these formations are decades old." },
@@ -99,8 +95,6 @@ public class MainActivity extends AppCompatActivity
                     { "⚖ Weight of Ice",
                             "The largest ice curtain columns you see can weigh over one tonne each. Despite their delicate, translucent appearance, they are structurally dense — the ice near the base is compressed so hard that it contains almost no air bubbles at all." }
             },
-            // ── Scene 2 — The Crystal Cathedral (thousands of icicles hanging from
-            // ceiling) ──
             {
                     { "💧 Icicle Growth",
                             "Each single icicle here grows roughly 1 centimetre per day under ideal conditions. A water droplet arrives, partially freezes, and leaves a thin ice ring before the next drop comes. The largest ones here may have been growing for 10 years or more." },
@@ -109,8 +103,6 @@ public class MainActivity extends AppCompatActivity
                     { "🤫 Total Silence",
                             "Ice caves are among the quietest places on Earth. The ice and rock around you absorb nearly all sound — no echo, no ambient hum. Scientists have measured near-zero decibel levels in chambers like this. Many first-time visitors hear their own heartbeat for the first time." }
             },
-            // ── Scene 3 — The Blue Window (looking out from cave interior to outside
-            // world) ──
             {
                     { "🪟 The Portal Effect",
                             "This view — looking out from the cave's inner chamber — is one of the most photographed compositions in glacial photography. The blue glacial ice frames the external world like a stained-glass window, creating a stark contrast between frozen stillness inside and life outside." },
@@ -127,12 +119,10 @@ public class MainActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // GL Surface
         glSurfaceView = findViewById(R.id.glSurfaceView);
         glSurfaceView.setEGLContextClientVersion(2);
 
         sensorHandler = new SensorHandler(this);
-        // InteractionManager to handle gaze collection of 3D objects
         InteractionManager interactionManager = new InteractionManager(this);
 
         vrRenderer = new VRRenderer(this, sensorHandler, interactionManager);
@@ -140,7 +130,6 @@ public class MainActivity extends AppCompatActivity
         glSurfaceView.setRenderer(vrRenderer);
         glSurfaceView.setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
 
-        // UI references
         movesCounter = findViewById(R.id.movesCounter);
         sceneLabel = findViewById(R.id.sceneLabel);
         sceneTransitionOverlay = findViewById(R.id.sceneTransitionOverlay);
@@ -150,28 +139,21 @@ public class MainActivity extends AppCompatActivity
 
         updateSceneLabel();
 
-        // MOVE button (Removed for gaze-only interaction)
-        // Button btnMove = findViewById(R.id.btnMove);
-        // if (btnMove != null) btnMove.setOnClickListener(v -> attemptMove());
-
-        // Info card close
         Button btnClose = findViewById(R.id.btnCloseInfo);
         if (btnClose != null)
             btnClose.setOnClickListener(v -> hideInfoCard());
 
-        // Audio engine
         audioEngine = new AudioEngine(this);
 
-        // Initialize TTS
+        // Initialize TTS with improved welcome message and explicit success check
         tts = new TextToSpeech(this, status -> {
-            if (status != TextToSpeech.ERROR) {
+            if (status == TextToSpeech.SUCCESS) {
                 tts.setLanguage(Locale.US);
+                stateHandler.postDelayed(() -> {
+                    tts.speak("Welcome to the Indian Cave Explorer. Gaze at the button to start your journey.", TextToSpeech.QUEUE_FLUSH, null, "WELCOME_MSG");
+                }, 2000);
             }
         });
-    }
-
-    private void startMenuMusic() {
-        // Background music removed
     }
 
     private void playNarration(int index) {
@@ -193,7 +175,6 @@ public class MainActivity extends AppCompatActivity
             tts.speak(history, TextToSpeech.QUEUE_ADD, null, null);
         }
 
-        // Mocking narration finish for auto-exit logic
         stateHandler.postDelayed(() -> {
             onNarrationFinished();
         }, 15000);
@@ -203,7 +184,7 @@ public class MainActivity extends AppCompatActivity
         if (currentState == VRState.INSIDE_CAVE) {
             stateHandler.postDelayed(() -> {
                 returnToLanding();
-            }, 3000); // 3 seconds wait
+            }, 3000);
         }
     }
 
@@ -231,7 +212,6 @@ public class MainActivity extends AppCompatActivity
         }, 600);
     }
 
-    // ── Move Logic ─────────────────────────────────────────────────────────
     public void enterCave(int caveIndex) {
         if (transitioning)
             return;
@@ -247,10 +227,7 @@ public class MainActivity extends AppCompatActivity
             currentState = VRState.INSIDE_CAVE;
             vrRenderer.setCaveScene(caveIndex);
 
-            // Start full history audio
             playFullHistory(caveIndex);
-
-            // UI Update
             sceneLabel.setText(CAVE_NAMES[caveIndex]);
 
             ObjectAnimator fadeOut = ObjectAnimator.ofFloat(sceneTransitionOverlay, "alpha", 1f, 0f);
@@ -263,7 +240,6 @@ public class MainActivity extends AppCompatActivity
         }, 600);
     }
 
-    // ── Insight Cards ──────────────────────────────────────────────────────
     private void showInsight(int buttonIndex) {
         String[] data = INSIGHTS[selectedCaveIndex != -1 ? selectedCaveIndex : 0][buttonIndex];
         infoCardTitle.setText(data[0]);
@@ -288,7 +264,6 @@ public class MainActivity extends AppCompatActivity
         }, 200);
     }
 
-    // ── UI helpers ─────────────────────────────────────────────────────────
     private void updateSceneLabel() {
         if (selectedCaveIndex != -1) {
             sceneLabel.setText(CAVE_NAMES[selectedCaveIndex]);
@@ -297,7 +272,6 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    // ── Lifecycle: GL + Sensor ─────────────────────────────────────────────
     @Override
     protected void onResume() {
         super.onResume();
@@ -306,7 +280,6 @@ public class MainActivity extends AppCompatActivity
         if (audioEngine != null) {
             audioEngine.startCaveAmbiance();
         }
-        // Feed head yaw to audio engine periodically
         startAudioYawUpdater();
     }
 
@@ -325,6 +298,10 @@ public class MainActivity extends AppCompatActivity
         super.onDestroy();
         if (moveServer != null)
             moveServer.stopServer();
+        if (tts != null) {
+            tts.stop();
+            tts.shutdown();
+        }
     }
 
     @Override
@@ -350,17 +327,18 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onTransitionTriggered(int caveId) {
-        if (currentState == VRState.LANDING) {
+        if (currentState == VRState.WELCOME) {
+            currentState = VRState.LANDING;
+            vrRenderer.setState(VRRenderer.State.LANDING);
+        } else if (currentState == VRState.LANDING) {
             enterCave(caveId);
         }
     }
 
     @Override
     public void onObjectCollected(int objectId, GameObject.Type type) {
-        // Legacy support or new object logic
     }
 
-    // ── Audio yaw updater ─────────────────────────────────────────────────
     private android.os.Handler audioHandler = new android.os.Handler(android.os.Looper.getMainLooper());
     private Runnable audioYawRunnable;
 
@@ -369,7 +347,7 @@ public class MainActivity extends AppCompatActivity
             if (audioEngine != null && sensorHandler != null) {
                 audioEngine.setHeadYaw(sensorHandler.getYaw());
             }
-            audioHandler.postDelayed(audioYawRunnable, 100); // 10Hz update
+            audioHandler.postDelayed(audioYawRunnable, 100);
         };
         audioHandler.post(audioYawRunnable);
     }

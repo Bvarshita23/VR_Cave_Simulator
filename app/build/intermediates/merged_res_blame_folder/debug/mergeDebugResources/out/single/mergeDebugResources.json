@@ -1,42 +1,54 @@
 [
     {
-        "merged": "com.example.vrdesert.app-debug-4:/drawable-nodpi_cave_entering.jpg.flat",
-        "source": "com.example.vrdesert.app-main-6:/drawable-nodpi/cave_entering.jpg"
+        "merged": "C:\\Users\\manas\\.gradle\\daemon\\8.13\\com.example.vrdesert.app-debug-4:\\drawable-nodpi_cave_drippingings2.jpg.flat",
+        "source": "C:\\Users\\manas\\.gradle\\daemon\\8.13\\com.example.vrdesert.app-main-6:\\drawable-nodpi\\cave_drippingings2.jpg"
     },
     {
-        "merged": "com.example.vrdesert.app-debug-4:/drawable-nodpi_cave_outerlook.jpg.flat",
-        "source": "com.example.vrdesert.app-main-6:/drawable-nodpi/cave_outerlook.jpg"
+        "merged": "C:\\Users\\manas\\.gradle\\daemon\\8.13\\com.example.vrdesert.app-debug-4:\\layout_activity_start.xml.flat",
+        "source": "C:\\Users\\manas\\.gradle\\daemon\\8.13\\com.example.vrdesert.app-main-6:\\layout\\activity_start.xml"
     },
     {
-        "merged": "com.example.vrdesert.app-debug-4:/drawable-nodpi_cave_drippingings2.jpg.flat",
-        "source": "com.example.vrdesert.app-main-6:/drawable-nodpi/cave_drippingings2.jpg"
+        "merged": "com.example.vrdesert.app-debug-4:/drawable-nodpi_updatedlanding.PNG.flat",
+        "source": "com.example.vrdesert.app-main-6:/drawable-nodpi/updatedlanding.PNG"
     },
     {
-        "merged": "com.example.vrdesert.app-debug-4:/drawable-nodpi_cave_drippingings.jpg.flat",
-        "source": "com.example.vrdesert.app-main-6:/drawable-nodpi/cave_drippingings.jpg"
+        "merged": "C:\\Users\\manas\\.gradle\\daemon\\8.13\\com.example.vrdesert.app-debug-4:\\layout_activity_calibration.xml.flat",
+        "source": "C:\\Users\\manas\\.gradle\\daemon\\8.13\\com.example.vrdesert.app-main-6:\\layout\\activity_calibration.xml"
     },
     {
-        "merged": "com.example.vrdesert.app-debug-4:/drawable-nodpi_fromcave_outside_view.jpg.flat",
-        "source": "com.example.vrdesert.app-main-6:/drawable-nodpi/fromcave_outside_view.jpg"
+        "merged": "C:\\Users\\manas\\.gradle\\daemon\\8.13\\com.example.vrdesert.app-debug-4:\\drawable-nodpi_cave_entranceorexit.jpg.flat",
+        "source": "C:\\Users\\manas\\.gradle\\daemon\\8.13\\com.example.vrdesert.app-main-6:\\drawable-nodpi\\cave_entranceorexit.jpg"
     },
     {
-        "merged": "com.example.vrdesert.app-debug-4:/layout_activity_start.xml.flat",
-        "source": "com.example.vrdesert.app-main-6:/layout/activity_start.xml"
+        "merged": "C:\\Users\\manas\\.gradle\\daemon\\8.13\\com.example.vrdesert.app-debug-4:\\drawable-nodpi_cave_entering.jpg.flat",
+        "source": "C:\\Users\\manas\\.gradle\\daemon\\8.13\\com.example.vrdesert.app-main-6:\\drawable-nodpi\\cave_entering.jpg"
     },
     {
-        "merged": "com.example.vrdesert.app-debug-4:/layout_activity_story.xml.flat",
-        "source": "com.example.vrdesert.app-main-6:/layout/activity_story.xml"
+        "merged": "C:\\Users\\manas\\.gradle\\daemon\\8.13\\com.example.vrdesert.app-debug-4:\\drawable-nodpi_fromcave_outside_view.jpg.flat",
+        "source": "C:\\Users\\manas\\.gradle\\daemon\\8.13\\com.example.vrdesert.app-main-6:\\drawable-nodpi\\fromcave_outside_view.jpg"
     },
     {
-        "merged": "com.example.vrdesert.app-debug-4:/drawable-nodpi_cave_entrance_withwoodenfloor.jpg.flat",
-        "source": "com.example.vrdesert.app-main-6:/drawable-nodpi/cave_entrance_withwoodenfloor.jpg"
+        "merged": "C:\\Users\\manas\\.gradle\\daemon\\8.13\\com.example.vrdesert.app-debug-4:\\layout_activity_main.xml.flat",
+        "source": "C:\\Users\\manas\\.gradle\\daemon\\8.13\\com.example.vrdesert.app-main-6:\\layout\\activity_main.xml"
     },
     {
-        "merged": "com.example.vrdesert.app-debug-4:/layout_activity_main.xml.flat",
-        "source": "com.example.vrdesert.app-main-6:/layout/activity_main.xml"
+        "merged": "C:\\Users\\manas\\.gradle\\daemon\\8.13\\com.example.vrdesert.app-debug-4:\\drawable-nodpi_cave_outerlook.jpg.flat",
+        "source": "C:\\Users\\manas\\.gradle\\daemon\\8.13\\com.example.vrdesert.app-main-6:\\drawable-nodpi\\cave_outerlook.jpg"
     },
     {
-        "merged": "com.example.vrdesert.app-debug-4:/drawable-nodpi_cave_entranceorexit.jpg.flat",
-        "source": "com.example.vrdesert.app-main-6:/drawable-nodpi/cave_entranceorexit.jpg"
+        "merged": "C:\\Users\\manas\\.gradle\\daemon\\8.13\\com.example.vrdesert.app-debug-4:\\drawable-nodpi_cave_entrance_withwoodenfloor.jpg.flat",
+        "source": "C:\\Users\\manas\\.gradle\\daemon\\8.13\\com.example.vrdesert.app-main-6:\\drawable-nodpi\\cave_entrance_withwoodenfloor.jpg"
+    },
+    {
+        "merged": "C:\\Users\\manas\\.gradle\\daemon\\8.13\\com.example.vrdesert.app-debug-4:\\drawable-nodpi_cave_drippingings.jpg.flat",
+        "source": "C:\\Users\\manas\\.gradle\\daemon\\8.13\\com.example.vrdesert.app-main-6:\\drawable-nodpi\\cave_drippingings.jpg"
+    },
+    {
+        "merged": "C:\\Users\\manas\\.gradle\\daemon\\8.13\\com.example.vrdesert.app-debug-4:\\layout_activity_story.xml.flat",
+        "source": "C:\\Users\\manas\\.gradle\\daemon\\8.13\\com.example.vrdesert.app-main-6:\\layout\\activity_story.xml"
+    },
+    {
+        "merged": "C:\\Users\\manas\\.gradle\\daemon\\8.13\\com.example.vrdesert.app-debug-4:\\drawable-nodpi_landingpage.png.flat",
+        "source": "C:\\Users\\manas\\.gradle\\daemon\\8.13\\com.example.vrdesert.app-main-6:\\drawable-nodpi\\landingpage.png"
     }
 ]

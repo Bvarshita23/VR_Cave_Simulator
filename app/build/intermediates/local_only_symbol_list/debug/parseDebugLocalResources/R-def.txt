@@ -9,7 +9,10 @@ drawable cave_entrance_withwoodenfloor
 drawable cave_entranceorexit
 drawable cave_outerlook
 drawable fromcave_outside_view
+drawable landingpage
+drawable updatedlanding
 id btnCalibration
+id btnCloseInfo
 id btnEnterCave
 id btnMove
 id btnStartGame

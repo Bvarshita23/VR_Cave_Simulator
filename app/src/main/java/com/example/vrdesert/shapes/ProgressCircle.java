@@ -33,8 +33,10 @@ public class ProgressCircle {
         int mvpHandle = GLES20.glGetUniformLocation(programId, "uMVPMatrix");
         GLES20.glUniformMatrix4fv(mvpHandle, 1, false, mvpMatrix, 0);
 
-        int colorHandle = GLES20.glGetUniformLocation(programId, "vColor");
-        GLES20.glUniform4f(colorHandle, 1.0f, 1.0f, 1.0f, 0.8f);
+        int colorHandle = GLES20.glGetUniformLocation(programId, "uColor");
+        if (colorHandle != -1) {
+            GLES20.glUniform4f(colorHandle, 1.0f, 1.0f, 1.0f, 0.8f);
+        }
 
         // Draw the circle arc based on progress
         int count = (int) (progress * SAMPLES);
